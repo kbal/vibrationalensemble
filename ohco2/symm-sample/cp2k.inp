@@ -1,0 +1,125 @@
+	&GLOBAL
+	  PROJECT sn2
+	  RUN_TYPE MD
+	  PRINT_LEVEL LOW
+	&END GLOBAL
+
+	&FORCE_EVAL
+	  METHOD Quickstep
+	  &DFT
+	    BASIS_SET_FILE_NAME BASIS_MOLOPT
+	    POTENTIAL_FILE_NAME GTH_POTENTIALS
+	    &QS
+              METHOD DFTB
+              &DFTB
+                SELF_CONSISTENT    T
+                DISPERSION         F
+                ORTHOGONAL_BASIS   F
+                DO_EWALD           F
+                &PARAMETER
+                  PARAM_FILE_PATH /user/antwerpen/202/vsc20235/data/codes/cp2k-4.1/data/DFTB/scc/
+                  PARAM_FILE_NAME scc_parameter
+                &END PARAMETER
+              &END DFTB
+	    &END QS
+	    &SCF
+	      EPS_SCF 5.0E-6
+	      MAX_SCF 100
+	      &OUTER_SCF
+		EPS_SCF 5.0E-6
+		MAX_SCF 100
+	      &END
+	      &OT
+		PRECONDITIONER FULL_ALL
+		MINIMIZER CG
+	      &END OT
+	      &PRINT
+		&RESTART OFF
+		&END RESTART
+	      &END PRINT
+	      SCF_GUESS RESTART
+	    &END SCF
+	    &POISSON
+	       POISSON_SOLVER WAVELET
+	       PERIODIC NONE
+	    &END POISSON
+	  &END DFT
+	    
+	  &SUBSYS
+	    &CELL
+	      ABC 20.0 20.0 20.0
+	      PERIODIC NONE
+	    &END CELL
+	    &COORD
+	      @INCLUDE 'data.coord'
+	    &END COORD
+	    &TOPOLOGY
+	      &CENTER_COORDINATES
+	      &END CENTER_COORDINATES
+	    &END TOPOLOGY
+	    &KIND H
+	      MASS 2.0
+	    &END KIND
+	  &END SUBSYS
+	&END FORCE_EVAL
+
+	&MOTION
+	  &MD
+	    ENSEMBLE NVT
+	    STEPS 400000
+	    TIMESTEP 0.25
+	    TEMPERATURE 300
+# Generated at http://cosmo-epfl.github.io/gle4md
+# R. Dettori, M. Ceriotti, J. Hunger, C. Melis, L. Colombo, and D. Donadio, J. Chem. Theory Comput. 13, 1284 (2017). 
+# Parameters used were: 
+# 1/gamma=  0.05 picoseconds
+# w0=       1500 cm^-1 
+# deltaw=   250 cm^-1 
+# Affects mostly modes with frequency around w0. 
+# Begins CP2K input section 
+
+&THERMOSTAT
+  REGION MASSIVE
+  TYPE GLE
+  &GLE
+    NDIM 3
+    A_SCALE [ps^-1] 1.00
+    A_LIST    2.000000000000e+0   2.998962120468e+1   0.000000000000e+0
+    A_LIST   -2.998962120468e+1   4.709128949688e+1   2.825477369813e+2
+    A_LIST    0.000000000000e+0  -2.825477369813e+2   0.000000000000e+0
+    C_LIST    3.153694106420e+2   1.024981978741e+0  -1.448031692699e+2
+    C_LIST    1.024981978741e+0   1.681312821277e+3   0.000000000000e+0
+    C_LIST   -1.448031692699e+2   0.000000000000e+0   1.665943410635e+3
+  &END GLE
+&END THERMOSTAT
+	    &PRINT
+	      &ENERGY
+		&EACH
+		  MD 20
+		&END EACH
+	      &END ENERGY
+	    &END PRINT
+	  &END MD
+	  &FREE_ENERGY
+	    &METADYN
+	      USE_PLUMED .TRUE.
+	      PLUMED_INPUT_FILE ./plumed.inp
+	    &END METADYN
+	  &END FREE_ENERGY
+	  &PRINT
+	    &TRAJECTORY
+	      FORMAT XYZ
+	      &EACH
+		MD 200
+	      &END EACH
+	    &END TRAJECTORY
+	    &RESTART_HISTORY
+	      &EACH
+		MD 10000
+	      &END EACH
+	    &END RESTART_HISTORY
+	    &RESTART OFF
+	    &END RESTART
+	  &END PRINT
+	&END MOTION
+

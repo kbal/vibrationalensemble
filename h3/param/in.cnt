@@ -1,0 +1,30 @@
+units           metal
+
+boundary        p p p
+
+atom_style      atomic
+atom_modify     map array
+atom_modify     sort 0 0.0
+read_data       data.cnt
+
+pair_style      bop save
+pair_coeff      * * CuH.bop.table H
+comm_modify     cutoff 11.3
+
+neighbor        1.0 bin
+neigh_modify    every 1 delay 5 check yes
+timestep        0.0001
+
+variable        t equal 300
+variable        damp equal 1.0
+
+thermo          10000
+thermo_style    custom step temp pe ke time etotal atoms
+
+fix             1 all gle 4 $t $t 485147 a.txt
+fix             2 all plumed plumedfile plumed.inp outfile plumed.out
+
+dump            1 all xyz 100000 dump.cnt
+dump_modify     1 element H
+
+run             2500000
